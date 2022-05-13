@@ -5,7 +5,11 @@ import sunau
 import sys
 from typing import Type
 
+import scriptgen
+
 def run_elements(commands, scheduler='SGE', host_os='posix'):
+
+    [scriptgen.write_execution_files(command, command_idx, scheduler, host_os) for command, command_idx in enumerate(commands)]
     
     if host_os == 'posix':
         posix_run(commands, scheduler)
@@ -57,18 +61,4 @@ def run_slurm(commands):
     pass
 
 def run_sge(commands):
-    pass
-
-def gen_sge_script(command):
-
-    # Currently very simple
-
-    line_1 = f'#!/bin/bash --login\n'
-    line_2 = f'#$ -cwd\n'
-    line_3 = command + f'\n'
-
-def gen_slurm_script(command):
-
-    # Currently very simple
-
     pass
