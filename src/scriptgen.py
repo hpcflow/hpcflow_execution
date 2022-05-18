@@ -27,7 +27,7 @@ def write_execution_files(command, command_idx, scheduler, host_os):
     command_steps = command_simple()
     
     write_file(command_steps, command_script_filename)
-    if host_os == 'linux':
+    if host_os == 'posix':
         subprocess.run(f'chmod u+rwx {command_script_filename}', shell=True)
     elif host_os == 'windows':
         pass
