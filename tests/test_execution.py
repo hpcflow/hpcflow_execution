@@ -19,7 +19,7 @@ def simple_commands():
         ]
     ]
 
-def test_run_elements_direct_posix(simple_commands, tmpdir):
+def test_run_elements_direct_posix(simple_commands, tmp_path):
 
     # Test for direct execution in posix environment. Three files should be created.
 
