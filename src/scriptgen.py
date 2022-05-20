@@ -1,6 +1,5 @@
 import subprocess
 from pathlib import Path
-from tkinter import W
 
 def write_execution_files(command, command_idx, scheduler, host_os, workflow_path):
 
@@ -52,9 +51,11 @@ def gen_slurm_job_script(command):
     # Currently very simple
     script = ''
     script += f'#!/bin/bash --login\n'
-    script += f'#SBATCH -p serial'
-    script += f'#SBATCH -n 1'
+    script += f'#SBATCH -p serial\n'
+    script += f'#SBATCH -n 1\n'
     script += f'./{command}\n'
+
+    return script
 
 def write_file(contents, filename):
 
