@@ -11,16 +11,17 @@ from src import scriptgen
 
 def run_elements(commands, scheduler='direct'):
 
-    workflow_id = secrets.token_hex(10)
-    #base_folder = Path.cwd()
-    base_folder = Path('')
-
+    # Folder will need more descriptive name in future, ideally using name of workflow. Could consider shorter hex
+    # or even just sequential numbering?
+    workflow_id = f'workflow_{secrets.token_hex(10)}'
+    base_folder = Path.cwd()
     workflow_path = create_workflow_path(workflow_id, base_folder)
 
     platform_string = sys.platform
-
     # host_os should return 'linux' for Linux, 'darwin' for macOS, 'cygwin' for windows/cygwin, 'win32' for windows.
-    # assume WSL returns 'linux', powershell returns 'win32' and cmd.exe returns 'win32'
+    # assume WSL returns 'linux', powershell returns 'win32' and cmd.exe returns 'win32'.
+    # Will want to change this later when running on multiple systems? Or use this to check what current matflow 
+    # instance is running on?
 
     if platform_string in ['linux', 'darwin', 'cygwin']:
         host_os = 'posix'
