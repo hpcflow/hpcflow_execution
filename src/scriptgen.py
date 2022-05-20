@@ -1,6 +1,7 @@
 import subprocess
+from pathlib import Path
 
-def write_execution_files(command, command_idx, scheduler, host_os):
+def write_execution_files(command, command_idx, scheduler, host_os, workflow_path):
 
     command_script_filename = f'{command}_{command_idx}.sh'
 
@@ -17,7 +18,7 @@ def write_execution_files(command, command_idx, scheduler, host_os):
     if scheduler == 'SGE' or scheduler == 'slurm':
 
         job_script_filename = f'job_{command_idx}.job'
-        write_file(job_script, job_script_filename)
+        write_file(job_script, workflow_path / job_script_filename)
         to_execute = f'{sub_command}{job_script_filename}'
 
     elif scheduler == 'direct':
@@ -26,9 +27,9 @@ def write_execution_files(command, command_idx, scheduler, host_os):
 
     command_steps = command_simple()
     
-    write_file(command_steps, command_script_filename)
+    write_file(command_steps, workflow_path / command_script_filename)
     if host_os == 'posix':
-        subprocess.run(f'chmod u+rwx {command_script_filename}', shell=True)
+        subprocess.run(f'chmod u+rwx {workflow_path / command_script_filename}', shell=True)
     elif host_os == 'windows':
         pass
     
@@ -63,7 +64,7 @@ def command_simple():
     command = ''
     command += f'/bin/date\n'
     command += f'/bin/hostname\n'
-    command += f'/bin/sleep 120\n'
+    command += f'/bin/sleep 10\n'
     command += f'/bin/date\n'
 
     return command
