@@ -3,7 +3,7 @@ from pathlib import Path
 
 def write_execution_files(command, command_idx, scheduler, host_os, workflow_path):
 
-    command_script_filename = f'{command}_{command_idx}.sh'
+    command_script_filename = f'{command[0]}_{command_idx}.sh'
 
     if scheduler == 'SGE':
 
@@ -25,8 +25,8 @@ def write_execution_files(command, command_idx, scheduler, host_os, workflow_pat
 
         to_execute = f'./{command_script_filename}'
 
-    command_steps = command_simple()
-    
+    command_steps = gen_task_string(command[1:])
+
     write_file(command_steps, workflow_path / command_script_filename)
     if host_os == 'posix':
         subprocess.run(f'chmod u+rwx {workflow_path / command_script_filename}', shell=True)
@@ -34,7 +34,6 @@ def write_execution_files(command, command_idx, scheduler, host_os, workflow_pat
         pass
     
     return to_execute
-
 
 def gen_sge_job_script(command):
 
@@ -57,17 +56,15 @@ def gen_slurm_job_script(command):
 
     return script
 
+def gen_task_string(task_list):
+
+    task_list_f = [f'{sub_task}\n' for sub_task in task_list]
+
+    task = ''.join(task_list_f)
+
+    return task
+
 def write_file(contents, filename):
 
     with open(filename, 'a') as file:
         file.write(contents)
-
-def command_simple():
-    
-    command = ''
-    command += f'/bin/date\n'
-    command += f'/bin/hostname\n'
-    command += f'/bin/sleep 10\n'
-    command += f'/bin/date\n'
-
-    return command
