@@ -8,16 +8,18 @@ def ssh_with_sp(username, hostname, command):
                        stdout=subprocess.PIPE,
                        stderr=subprocess.PIPE)
 
-    result = ssh.stdout.readlines()
+    return ssh
+    
+    # result = ssh.stdout.readlines()
 
-    if result == []:
+    #if result == []:
 
-        error = ssh.stderr.readlines()
-        print >>sys.stderr, "ERROR: %s" % error
+    #    error = ssh.stderr.readlines()
+    #    print >>sys.stderr, "ERROR: %s" % error
 
-    else:
+    #else:
 
-        print(result)
+    #    print(result)
 
 def scp_to_remote_with_sp(username, hostname, files, dest):
 

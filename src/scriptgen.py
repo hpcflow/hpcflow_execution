@@ -3,6 +3,8 @@ from pathlib import Path
 
 def write_execution_files(command, command_idx, scheduler, host_os, workflow_path):
 
+    file_list = []
+
     command_script_filename = f'{command[0]}_{command_idx}.sh'
 
     if scheduler == 'SGE':
@@ -19,6 +21,8 @@ def write_execution_files(command, command_idx, scheduler, host_os, workflow_pat
 
         job_script_filename = f'job_{command_idx}.job'
         write_file(job_script, workflow_path / job_script_filename)
+
+        file_list.append(workflow_path / job_script_filename)
         to_execute = f'{sub_command}{job_script_filename}'
 
     elif scheduler == 'direct':
@@ -28,12 +32,14 @@ def write_execution_files(command, command_idx, scheduler, host_os, workflow_pat
     command_steps = gen_task_string(command[1:])
 
     write_file(command_steps, workflow_path / command_script_filename)
+    file_list.append(workflow_path / command_script_filename)
+
     if host_os == 'posix':
         subprocess.run(f'chmod u+rwx {workflow_path / command_script_filename}', shell=True)
     elif host_os == 'windows':
         pass
     
-    return to_execute
+    return to_execute, file_list
 
 def gen_sge_job_script(command):
 

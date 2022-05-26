@@ -8,23 +8,32 @@ import secrets
 from pathlib import Path
 
 from src import scriptgen
+from src import remote_with_sp
 
-#   commands = [
-#       [ # commands for task 1
-#           "doSomething parameter1 parameter2",
-#           "doSomethingElse parameter1"
-#       ],
-#       [
-#           # commands for task 2
-#       ],
-#       ...
-#   ]
+def run_elements(commands):
 
-# commands is list of lists where each lower level list contains strings which are commands to be executed.
+    # Folder will need more descriptive name in future, ideally using name of workflow. Could consider shorter hex
+    # or even just sequential numbering?
+    workflow_id = f'{commands[0]}_{secrets.token_hex(10)}'
+    base_folder = Path.cwd()
+    workflow_path = create_workflow_path(workflow_id, base_folder)
 
+    to_run = [
+        scriptgen.write_execution_files(task['command'], task_idx, task['scheduler'], task['host_os'], workflow_path) 
+        for task_idx, task in enumerate(commands[1:])
+        ]
 
+    remote_prep_done = set()
 
-def run_elements(commands, scheduler='direct'):
+    for task in commands[1:]:
+
+        if task['hostname'] not in remote_prep_done:
+            create_remote_workflow_path(workflow_id, task['basefolder'], task['hostname'], task['username'])
+            remote_prep_done.add(task['hostname'])
+
+    return to_run
+
+def run_elements_old(commands, scheduler='direct'):
 
     # Folder will need more descriptive name in future, ideally using name of workflow. Could consider shorter hex
     # or even just sequential numbering?
@@ -58,3 +67,11 @@ def create_workflow_path(workflow_id, base_folder):
     workflow_path.mkdir()
 
     return workflow_path
+
+def create_remote_workflow_path(workflow_id, remote_basefolder, hostname, username):
+
+    remote_workflow_path = Path(remote_basefolder) / workflow_id
+
+    remote_with_sp.ssh_with_sp(username, hostname, f'mkdir {remote_workflow_path}')
+
+    return remote_workflow_path
