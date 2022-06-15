@@ -1,3 +1,4 @@
+import collections
 from multiprocessing.sharedctypes import Value
 import sched
 import subprocess
@@ -12,26 +13,59 @@ from src import remote_with_sp
 
 def run_elements(commands):
 
-    # Folder will need more descriptive name in future, ideally using name of workflow. Could consider shorter hex
-    # or even just sequential numbering?
+    # Create local folder
+
     workflow_id = f'{commands[0]}_{secrets.token_hex(10)}'
     base_folder = Path.cwd()
     workflow_path = create_workflow_path(workflow_id, base_folder)
+
+    # Write script files to local folder and return list containing filenames and command to initiate each task.
 
     to_run = [
         scriptgen.write_execution_files(task['command'], task_idx, task['scheduler'], task['host_os'], workflow_path) 
         for task_idx, task in enumerate(commands[1:])
         ]
 
+
+    # Create workflow folder on each remote resource and copy relevant files for each task.
+
     remote_prep_done = set()
+    remote_folders = collections.defaultdict(list)
+    scp_out = []
 
-    for task in commands[1:]:
+    for num, task in enumerate(commands[1:]):
 
-        if task['hostname'] not in remote_prep_done:
-            create_remote_workflow_path(workflow_id, task['basefolder'], task['hostname'], task['username'])
-            remote_prep_done.add(task['hostname'])
+        if task['location'] == 'remote':
+            
+            if task['hostname'] not in remote_prep_done:
+                remote_folders[task['hostname']] = create_remote_workflow_path(workflow_id, task['basefolder'], 
+                task['hostname'], task['username'])
+                remote_prep_done.add(task['hostname'])
+                
+       
+            scp_out.append(remote_with_sp.scp_to_remote_with_sp(task['username'], task['hostname'], to_run[num][1:][0], 
+                Path(task['basefolder']) / workflow_id))
+            print(f'{num} {to_run[num][1:][0]}')
 
-    return to_run
+    # Now execute each task
+    # NB For remote, queued tasks they are all getting submitted to the queueing software one after the other. This
+    # will need to be dealt with to avoid dependency problems.
+
+    for num, task in enumerate(commands[1:]):
+
+        if task['location'] == 'local':
+            
+            command_info = subprocess.run(to_run[num][0], shell=True, cwd=workflow_path)
+            command_info.check_returncode()
+            #print(to_run[num][0])
+
+        elif task['location'] == 'remote':
+
+            #print(to_run[num][0])
+            remote_with_sp.ssh_with_sp(task['username'], task['hostname'], to_run[num][0], Path.cwd(), remote_folders[task['hostname']])
+
+
+    return to_run, scp_out
 
 def run_elements_old(commands, scheduler='direct'):
 
@@ -64,7 +98,11 @@ def create_workflow_path(workflow_id, base_folder):
 
     workflow_path = base_folder / workflow_id
 
+    print(f'Creating local workflow folder at {workflow_path}...')
+
     workflow_path.mkdir()
+
+    print(f'Complete\n')
 
     return workflow_path
 
@@ -72,6 +110,10 @@ def create_remote_workflow_path(workflow_id, remote_basefolder, hostname, userna
 
     remote_workflow_path = Path(remote_basefolder) / workflow_id
 
-    remote_with_sp.ssh_with_sp(username, hostname, f'mkdir {remote_workflow_path}')
+    print(f'Creating remote workflow folder at {hostname}:{remote_workflow_path}...')
+
+    remote_with_sp.ssh_with_sp(username, hostname, f'mkdir {remote_workflow_path}', Path.cwd(), '~')
+
+    print(f'Complete\n')
 
     return remote_workflow_path

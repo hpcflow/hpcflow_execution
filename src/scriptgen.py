@@ -17,12 +17,15 @@ def write_execution_files(command, command_idx, scheduler, host_os, workflow_pat
         job_script = gen_slurm_job_script(command_script_filename)
         sub_command = f'sbatch '
 
+        file_list.append(str(workflow_path / job_script_filename))
+        to_execute = f'{sub_command}{job_script_filename}'
+
     if scheduler == 'SGE' or scheduler == 'slurm':
 
         job_script_filename = f'job_{command_idx}.job'
         write_file(job_script, workflow_path / job_script_filename)
 
-        file_list.append(workflow_path / job_script_filename)
+        file_list.append(str(workflow_path / job_script_filename))
         to_execute = f'{sub_command}{job_script_filename}'
 
     elif scheduler == 'direct':
@@ -32,14 +35,14 @@ def write_execution_files(command, command_idx, scheduler, host_os, workflow_pat
     command_steps = gen_task_string(command[1:])
 
     write_file(command_steps, workflow_path / command_script_filename)
-    file_list.append(workflow_path / command_script_filename)
+    file_list.append(str(workflow_path / command_script_filename))
 
     if host_os == 'posix':
         subprocess.run(f'chmod u+rwx {workflow_path / command_script_filename}', shell=True)
     elif host_os == 'windows':
         pass
     
-    return to_execute, file_list
+    return [to_execute, file_list]
 
 def gen_sge_job_script(command):
 
