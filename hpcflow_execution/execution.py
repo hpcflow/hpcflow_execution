@@ -8,8 +8,8 @@ from typing import Type
 import secrets
 from pathlib import Path
 
-from src import scriptgen
-from src import remote_with_sp
+from hpcflow_execution import scriptgen
+from hpcflow_execution import remote_with_sp
 
 def run_elements(commands):
 
