@@ -7,7 +7,7 @@ name = "pypi"
 numpy = "*"
 zarr = "*"
 paramiko = "*"
-pexpect = "*"
+scp = "*"
 
 [dev-packages]
 
