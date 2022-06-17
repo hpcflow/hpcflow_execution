@@ -11,8 +11,9 @@ def ssh_connect(uname, host):
 
     return ssh
 
-def execute_command_ssh(ssh, command)
+def execute_command_ssh(ssh, command):
 
     stdin, stdout, stderr = ssh.exec_command(command)
 
     return stdin, stdout, stderr
+    
