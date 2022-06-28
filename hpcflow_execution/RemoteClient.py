@@ -1,7 +1,9 @@
-from multiprocessing import AuthenticationError
-from types import NoneType
-from paramiko import SSHClient, Transport, AutoAddPolicy
-import scp
+from typing import List
+
+from paramiko import AutoAddPolicy, SSHClient, Transport
+from paramiko.auth_handler import AuthenticationException, SSHException
+from scp import SCPClient, SCPException
+
 import logging
 
 class RemoteClient:
@@ -17,19 +19,77 @@ class RemoteClient:
         self.user = user
         self.remote_path = remote_path
 
-        self.client_ssh = None
-        self.client_scp = None
+        self._ssh_client = None
+        self._scp_client = None
 
         self.logger = self.logger_setup()
 
+    @property
+    def ssh_client(self):
 
-def logger_setup():
+        if self._ssh_client is None:
+
+            try:
+                ssh_client = SSHClient()
+                ssh_client.set_missing_host_key_policy(AutoAddPolicy())
+
+                ssh_client._transport = Transport(self.host)
+                ssh_client._transport.connect()
+                ssh_client._transport.auth_interactive_dumb(username=self.user, handler=None)
+
+                self._ssh_client = ssh_client
+
+                return self._ssh_client
+
+            except AuthenticationException as e:
+                self.logger.error(
+                    f"AuthenticationException occurred: {e}"
+                    )
+
+            except Exception as e:
+                self.logger.error(
+                    f"Unexpected error occurred while connecting to host: {e}"
+                )
+        else:
+
+            return self._ssh_client
+
+    @ssh_client.deleter
+    def ssh_client(self):
+
+        self._ssh_client.close()
+        self._ssh_client = None
+
+    @property
+    def scp_client(self):
+
+        if self._scp_client is None:
+
+            ssh_cl = self.ssh_client
+            scp_client = SCPClient(ssh_cl.get_transport())
+
+            self._scp_client = scp_client
+
+            return self._scp_client
+
+        else:
+
+            return self._scp_client
+
+    @scp_client.deleter
+    def scp_client(self):
+
+        self._scp_client.close()
+        self._scp_client = None
+
+    def logger_setup(self):
+        
         logger = logging.getLogger(__name__)
 
         c_handler = logging.StreamHandler()
         f_handler = logging.FileHandler('file.log')
-        c_handler.setLevel(logging.WARNING)
-        f_handler.setLevel(logging.ERROR)
+        c_handler.setLevel(logging.INFO)
+        f_handler.setLevel(logging.INFO)
 
         c_format = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
         f_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -41,87 +101,47 @@ def logger_setup():
 
         return logger
 
+    def execute_commands(self, commands: List[str]):
 
-@property
-def connection(self):
+        """
+        Execute multiple commands in succession.
 
-    self.client_ssh = ssh_connection(self.user, self.host)
-    self.client_scp = scp_connection(self.client_ssh)
+        :param List[str] dommands: List of unix commands as strings.
+        """
 
+        for cmd in commands:
 
-@connection.deleter
-def connection(self):
+            stdin, stdout, stderr = self.ssh_client.exec_command(cmd)
+            stdout.channel.recv_exit_status()
+            response = stdout.readlines()
+            print(f'{response}')
 
-    self.client_ssh.close()
-    self.client_scp.close()
+            for line in response:
+                self.logger.info(
+                    f"INPUT: {cmd}\n \
+                    OUTPUT: {line}"
+                )
 
+    def bulk_upload(self, filepaths: List[str]):
 
-def ssh_connection(self, uname, host):
-
-    try:
-        ssh = SSHClient()
-        ssh.set_missing_host_key_policy(AutoAddPolicy())
-
-        ssh._transport = Transport(host)
-        ssh._transport.connect()
-        ssh._transport.auth_interactive_dumb(username=uname, handler=None)
-
-        return ssh
-    except AuthenticationException as e:
-        self.logger.error(
-            f"AuthenticationException occurred: {e}"
+        try:
+            self.scp_client.put(
+                filepaths,
+                remote_path = self.remote_path,
+                recursive = True
             )
-    except Exception as e:
-        self.logger.error(
-            f"Unexpected error occurred while connecting to host: {e}"
-        )
-
-
-def scp_connection(self, ssh):
-
-    scp = scp.SCPClient(ssh.get_transport())
-
-    return scp
-
-
-def execute_commands(self, commands: list[str]):
-
-    """
-    Execute multiple commands in succession.
-
-    :param List[str] dommands: List of unix commands as strings.
-    """
-
-    for cmd in commands:
-        stdin, stdout, stderr = self.connection.exec_command(cmd)
-        stdout.channel.recv_exit_status()
-        response = stdout.readlines()
-        for line in response:
             self.logger.info(
-                f"INPUT: {cmd}\n \
-                OUTPUT: {line}"
+                f"Finished uploading {len(filepaths)} files to {self.remote_path} on {self.host}"
+            )
+        except SCPException as e:
+            self.logger.error(
+                f"SCPException during bulk upload: {e}"
+            )
+        except Exception as e:
+            self.logger.error(
+                f"Unexpected exception during bulk upload: {e}"
             )
 
-def bulk_upload(self, filepaths: list[str]):
-
-    try:
-        self.scp.put(
-            filepaths,
-            remote_path = self.remote_path,
-            recursive = True
-        )
-        self.logger.info(
-            f"Finished uploading {len(filepaths)} files to {self.remote_path} on {self.host}"
-        )
-    except SCPException as e:
-        self.logger.error(
-            f"SCPException during bulk upload: {e}"
-        )
-    except Exception as e:
-        self.logger.error(
-            f"Unexpected exception during bulk upload: {e}"
-        )
-
-def download_file(self, file: str):
-    """Download file from remote host."""
-    self.scp.get(file)
+    def download_file(self, file: str):
+        """Download file from remote host."""
+        self.scp_client.get(file)
