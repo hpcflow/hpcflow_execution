@@ -11,6 +11,8 @@ from pathlib import Path
 from hpcflow_execution import scriptgen
 from hpcflow_execution import remote_with_sp
 
+from hpcflow_execution import RemoteClient
+
 def run_elements(commands):
 
     # Create local folder
@@ -26,11 +28,11 @@ def run_elements(commands):
         for task_idx, task in enumerate(commands[1:])
         ]
 
-
     # Create workflow folder on each remote resource and copy relevant files for each task.
 
     remote_prep_done = set()
     remote_folders = collections.defaultdict(list)
+    remote_clients = collections.defaultdict(None)
     scp_out = []
 
     for num, task in enumerate(commands[1:]):
@@ -38,14 +40,13 @@ def run_elements(commands):
         if task['location'] == 'remote':
             
             if task['hostname'] not in remote_prep_done:
-                remote_folders[task['hostname']] = create_remote_workflow_path(workflow_id, task['basefolder'], 
-                task['hostname'], task['username'])
+
+                remote_clients[task['hostname']] = RemoteClient.RemoteClient(task['hostname'], task['username'], task['basefolder'])
+                print(type( remote_clients[task['hostname']]))
+                remote_folders[task['hostname']] = create_remote_workflow_path(workflow_id, remote_clients[task['hostname']])
                 remote_prep_done.add(task['hostname'])
-                
-       
-            scp_out.append(remote_with_sp.scp_to_remote_with_sp(task['username'], task['hostname'], to_run[num][1:][0], 
-                Path(task['basefolder']) / workflow_id))
-            print(f'{num} {to_run[num][1:][0]}')
+
+            remote_clients[task['hostname']].bulk_upload(remote_folders[task['hostname']], to_run[num][1:][0]) 
 
     # Now execute each task
     # NB For remote, queued tasks they are all getting submitted to the queueing software one after the other. This
@@ -57,12 +58,10 @@ def run_elements(commands):
             
             command_info = subprocess.run(to_run[num][0], shell=True, cwd=workflow_path)
             command_info.check_returncode()
-            #print(to_run[num][0])
 
         elif task['location'] == 'remote':
 
-            #print(to_run[num][0])
-            remote_with_sp.ssh_with_sp(task['username'], task['hostname'], to_run[num][0], Path.cwd(), remote_folders[task['hostname']])
+            remote_clients[task['hostname']].execute_commands(remote_folders[task['hostname']], [to_run[num][0]])
 
 
     return to_run, scp_out
@@ -106,13 +105,13 @@ def create_workflow_path(workflow_id, base_folder):
 
     return workflow_path
 
-def create_remote_workflow_path(workflow_id, remote_basefolder, hostname, username):
+def create_remote_workflow_path(workflow_id, RemoteClient):
 
-    remote_workflow_path = Path(remote_basefolder) / workflow_id
+    remote_workflow_path = Path(RemoteClient.remote_path) / Path(workflow_id)
 
-    print(f'Creating remote workflow folder at {hostname}:{remote_workflow_path}...')
+    print(f'Creating remote workflow folder at {RemoteClient.host}:{remote_workflow_path}...')
 
-    remote_with_sp.ssh_with_sp(username, hostname, f'mkdir {remote_workflow_path}', Path.cwd(), '~')
+    RemoteClient.execute_commands(Path(RemoteClient.remote_path), [f'mkdir {remote_workflow_path}'])
 
     print(f'Complete\n')
 

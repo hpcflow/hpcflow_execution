@@ -3,6 +3,7 @@ from typing import List
 from paramiko import AutoAddPolicy, SSHClient, Transport
 from paramiko.auth_handler import AuthenticationException, SSHException
 from scp import SCPClient, SCPException
+from pathlib import Path
 
 import logging
 
@@ -17,12 +18,15 @@ class RemoteClient:
     ):
         self.host = host
         self.user = user
-        self.remote_path = remote_path
+        self.remote_path = Path(remote_path)
 
         self._ssh_client = None
         self._scp_client = None
 
         self.logger = self.logger_setup()
+
+    def __repr__(self):
+        return f'RemoteClient({self.host}, {self.user}, {self.remote_path})'
 
     @property
     def ssh_client(self):
@@ -85,11 +89,12 @@ class RemoteClient:
     def logger_setup(self):
         
         logger = logging.getLogger(__name__)
+        logger.setLevel(logging.DEBUG)
 
         c_handler = logging.StreamHandler()
         f_handler = logging.FileHandler('file.log')
-        c_handler.setLevel(logging.INFO)
-        f_handler.setLevel(logging.INFO)
+        #c_handler.setLevel(logging.INFO)
+        #f_handler.setLevel(logging.INFO)
 
         c_format = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
         f_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -101,7 +106,7 @@ class RemoteClient:
 
         return logger
 
-    def execute_commands(self, commands: List[str]):
+    def execute_commands(self, exec_folder, commands: List[str]):
 
         """
         Execute multiple commands in succession.
@@ -111,7 +116,7 @@ class RemoteClient:
 
         for cmd in commands:
 
-            stdin, stdout, stderr = self.ssh_client.exec_command(cmd)
+            stdin, stdout, stderr = self.ssh_client.exec_command(f"cd {exec_folder} && {cmd}")
             stdout.channel.recv_exit_status()
             response = stdout.readlines()
             print(f'{response}')
@@ -122,12 +127,12 @@ class RemoteClient:
                     OUTPUT: {line}"
                 )
 
-    def bulk_upload(self, filepaths: List[str]):
+    def bulk_upload(self, upload_folder, filepaths: List[str]):
 
         try:
             self.scp_client.put(
                 filepaths,
-                remote_path = self.remote_path,
+                remote_path = self.remote_path / upload_folder ,
                 recursive = True
             )
             self.logger.info(
