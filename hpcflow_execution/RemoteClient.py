@@ -7,6 +7,8 @@ from pathlib import Path
 
 import logging
 
+import getpass
+
 class RemoteClient:
 
     def __init__(
@@ -31,6 +33,16 @@ class RemoteClient:
     @property
     def ssh_client(self):
 
+        def handler(title, instructions, prompt_list):
+            answers = []
+            for prompt_,_ in prompt_list:
+                prompt = prompt_.strip().lower()
+                if prompt.startswith('password'):
+                    answers.append(getpass.getpass())
+                else:
+                    raise ValueError('Unknown prompt: {}'.format(prompt_))
+            return answers
+
         if self._ssh_client is None:
 
             try:
@@ -39,7 +51,8 @@ class RemoteClient:
 
                 ssh_client._transport = Transport(self.host)
                 ssh_client._transport.connect()
-                ssh_client._transport.auth_interactive_dumb(username=self.user, handler=None)
+        #        ssh_client._transport.auth_interactive_dumb(username=self.user, handler=None)
+                ssh_client._transport.auth_interactive(self.user, handler)
 
                 self._ssh_client = ssh_client
 
@@ -116,16 +129,18 @@ class RemoteClient:
 
         for cmd in commands:
 
-            stdin, stdout, stderr = self.ssh_client.exec_command(f"cd {exec_folder} && {cmd}")
-            stdout.channel.recv_exit_status()
-            response = stdout.readlines()
-            print(f'{response}')
+            try:
+                stdin, stdout, stderr = self.ssh_client.exec_command(f"cd {exec_folder} && {cmd}")
+                stdout.channel.recv_exit_status()
+                response = stdout.readlines()
 
-            for line in response:
-                self.logger.info(
-                    f"INPUT: {cmd}\n \
-                    OUTPUT: {line}"
-                )
+                for line in response:
+                    self.logger.info(
+                        f"INPUT: {cmd}\n \
+                        OUTPUT: {line}"
+                    )
+            except SSHException as e:
+                self.logger.error(f"SSHException while executing command remotely: {e}")
 
     def bulk_upload(self, upload_folder, filepaths: List[str]):
 

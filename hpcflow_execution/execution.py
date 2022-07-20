@@ -42,7 +42,6 @@ def run_elements(commands):
             if task['hostname'] not in remote_prep_done:
 
                 remote_clients[task['hostname']] = RemoteClient.RemoteClient(task['hostname'], task['username'], task['basefolder'])
-                print(type( remote_clients[task['hostname']]))
                 remote_folders[task['hostname']] = create_remote_workflow_path(workflow_id, remote_clients[task['hostname']])
                 remote_prep_done.add(task['hostname'])
 
@@ -61,7 +60,8 @@ def run_elements(commands):
 
         elif task['location'] == 'remote':
 
-            remote_clients[task['hostname']].execute_commands(remote_folders[task['hostname']], [to_run[num][0]])
+            #remote_clients[task['hostname']].execute_commands(remote_folders[task['hostname']], [to_run[num][0]])
+            remote_clients[task['hostname']].execute_commands(remote_clients[task['hostname']].remote_path, [to_run[num][0]])
 
 
     return to_run, scp_out
