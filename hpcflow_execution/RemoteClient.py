@@ -9,6 +9,13 @@ import logging
 
 import getpass
 
+class AuthenticationTimeoutError(Exception):
+
+    def __init__(self, retry_count):
+        self.retry_count = retry_count
+        self.message = f"Authentication timed out, {retry_count} attempts remaining."
+        super().__init__(self.message)
+
 class RemoteClient:
 
     def __init__(
@@ -35,10 +42,16 @@ class RemoteClient:
 
         def handler(title, instructions, prompt_list):
             answers = []
+
+            print(f'prompt_list type: {type(prompt_list)}')
+
+
             for prompt_,_ in prompt_list:
                 prompt = prompt_.strip().lower()
                 if prompt.startswith('password'):
                     answers.append(getpass.getpass())
+                elif prompt.startswith('duo'):
+                    answers.append('1')
                 else:
                     raise ValueError('Unknown prompt: {}'.format(prompt_))
             return answers
@@ -50,8 +63,9 @@ class RemoteClient:
                 ssh_client.set_missing_host_key_policy(AutoAddPolicy())
 
                 ssh_client._transport = Transport(self.host)
+                # Increase timeout while waiting for authorisation
+                ssh_client._transport.auth_timeout = 60.0
                 ssh_client._transport.connect()
-        #        ssh_client._transport.auth_interactive_dumb(username=self.user, handler=None)
                 ssh_client._transport.auth_interactive(self.user, handler)
 
                 self._ssh_client = ssh_client
@@ -62,6 +76,9 @@ class RemoteClient:
                 self.logger.error(
                     f"AuthenticationException occurred: {e}"
                     )
+                #print(type(e))    
+                #if "timeout" in e:
+                #raise AuthenticationTimeoutError(0)
 
             except Exception as e:
                 self.logger.error(
