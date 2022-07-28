@@ -38,4 +38,4 @@ if __name__ == '__main__':
     CreatePersistantRandomZarr(filename)
     z1 = LoadZarr(filename)
     z1 = ManipZarr(z1)
-    SaveZarr('test.zarr', z1)
+    SaveZarr(filename, z1)
