@@ -3,7 +3,7 @@
 import pytest
 from pathlib import Path
 
-from src import execution
+from hpcflow_execution import execution
 
 @pytest.fixture
 def simple_commands():

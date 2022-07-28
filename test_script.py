@@ -1,5 +1,5 @@
-from src import execution
-from src import test_hybrid_commands
+from hpcflow_execution import execution
+from hpcflow_execution import test_hybrid_commands
 
 
 def test_hybrid():
