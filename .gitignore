@@ -1,3 +1,7 @@
+# Temp workflow folders
+
+remote_flow_*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

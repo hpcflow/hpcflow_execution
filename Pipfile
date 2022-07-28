@@ -8,6 +8,7 @@ numpy = "*"
 zarr = "*"
 paramiko = "*"
 scp = "*"
+retry = "*"
 
 [dev-packages]
 

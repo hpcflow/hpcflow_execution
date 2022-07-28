@@ -6,7 +6,7 @@ from scp import SCPClient, SCPException
 from pathlib import Path
 
 import logging
-
+import traceback
 import getpass
 
 class AuthenticationTimeoutError(Exception):
@@ -43,9 +43,6 @@ class RemoteClient:
         def handler(title, instructions, prompt_list):
             answers = []
 
-            print(f'prompt_list type: {type(prompt_list)}')
-
-
             for prompt_,_ in prompt_list:
                 prompt = prompt_.strip().lower()
                 if prompt.startswith('password'):
@@ -63,8 +60,7 @@ class RemoteClient:
                 ssh_client.set_missing_host_key_policy(AutoAddPolicy())
 
                 ssh_client._transport = Transport(self.host)
-                # Increase timeout while waiting for authorisation
-                ssh_client._transport.auth_timeout = 60.0
+                ssh_client._transport.auth_timeout = 20.0
                 ssh_client._transport.connect()
                 ssh_client._transport.auth_interactive(self.user, handler)
 
@@ -76,6 +72,7 @@ class RemoteClient:
                 self.logger.error(
                     f"AuthenticationException occurred: {e}"
                     )
+                raise
                 #print(type(e))    
                 #if "timeout" in e:
                 #raise AuthenticationTimeoutError(0)
@@ -84,6 +81,7 @@ class RemoteClient:
                 self.logger.error(
                     f"Unexpected error occurred while connecting to host: {e}"
                 )
+                raise
         else:
 
             return self._ssh_client
@@ -158,8 +156,11 @@ class RemoteClient:
                     )
             except SSHException as e:
                 self.logger.error(f"SSHException while executing command remotely: {e}")
+                raise
 
     def bulk_upload(self, upload_folder, filepaths: List[str]):
+
+        print(f"Beginning upload of {len(filepaths)} files to {self.remote_path} on {self.host}")
 
         try:
             self.scp_client.put(
@@ -174,10 +175,12 @@ class RemoteClient:
             self.logger.error(
                 f"SCPException during bulk upload: {e}"
             )
+            raise
         except Exception as e:
             self.logger.error(
                 f"Unexpected exception during bulk upload: {e}"
             )
+            raise
 
     def download_file(self, file: str):
         """Download file from remote host."""
