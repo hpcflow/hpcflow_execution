@@ -1,6 +1,11 @@
-# Temp workflow folders
+# Temp workflow folders and data files
 
 remote_flow_*
+*.zarr
+
+#macOS
+
+.DS_store
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
