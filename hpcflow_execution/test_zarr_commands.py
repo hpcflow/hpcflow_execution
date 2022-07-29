@@ -1,4 +1,4 @@
-zarr_flow = [
+{
     'zarr_flow',
     { 'name': 'create_data',
     'command': [
@@ -11,4 +11,4 @@ zarr_flow = [
     'hostname': 'NaN',
     'username': 'mbcxgcf2',
     }
-]
+}
