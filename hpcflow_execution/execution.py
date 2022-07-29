@@ -1,7 +1,6 @@
 import collections
 import subprocess
 import secrets
-import zarr
 from pathlib import Path
 
 from hpcflow_execution import scriptgen
