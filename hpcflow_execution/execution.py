@@ -10,7 +10,7 @@ def run_elements(commands):
 
     # Create local folder
 
-    workflow_id = f'{commands[0]}_{secrets.token_hex(10)}'
+    workflow_id = f'{commands["name"]}_{secrets.token_hex(10)}'
     base_folder = Path.cwd()
     workflow_path = create_workflow_path(workflow_id, base_folder)
 
@@ -19,9 +19,9 @@ def run_elements(commands):
 
     print(f'Writing scripts and job submission files.')
     to_run = [
-        scriptgen.write_execution_files(task['command'], task_idx,
+        scriptgen.write_execution_files(task['commands'], task_idx,
             task['scheduler'], task['host_os'], workflow_path) 
-        for task_idx, task in enumerate(commands[1:])
+        for task_idx, task in enumerate(commands["tasks"])
         ]
 
     # Create workflow folder on each remote resource and copy relevant files 
@@ -32,7 +32,7 @@ def run_elements(commands):
     remote_clients = collections.defaultdict(None)
     scp_out = []
 
-    for num, task in enumerate(commands[1:]):
+    for num, task in enumerate(commands["tasks"]):
 
         if task['location'] == 'remote':
             
