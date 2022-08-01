@@ -1,13 +1,11 @@
-import json
 import sys
+
+from hpcflow_execution import front_end
 
 if __name__ == '__main__':
 
     workflow_name = sys.argv[1]
 
-    with open(workflow_name) as file:
-        workflow_string = file.read()
+    workflow_json = front_end.load_workflow_from_json(workflow_name)
 
-    workflow_dict = json.loads(workflow_string)
-
-    print(workflow_dict)
+    front_end.run_workflow(workflow_json)

@@ -1,18 +1,20 @@
 import subprocess
 from pathlib import Path
 
-def write_execution_files(command, command_idx, scheduler, host_os, workflow_path):
+def write_execution_files(command, command_idx, workflow_path):
 
     file_list = []
 
-    command_script_filename = f'{command[0]}_{command_idx}.sh'
+    command_script_filename = f'{command["name"]}_{command_idx}.sh'
 
-    if scheduler == 'SGE':
+    scheduler = command["scheduler"]
+
+    if command["scheduler"] == 'SGE':
 
         job_script = gen_sge_job_script(command_script_filename)
         sub_command = f'qsub '
 
-    elif scheduler == 'slurm':
+    elif command["scheduler"] == 'slurm':
 
         job_script = gen_slurm_job_script(command_script_filename)
         sub_command = f'sbatch '
@@ -20,7 +22,7 @@ def write_execution_files(command, command_idx, scheduler, host_os, workflow_pat
         file_list.append(str(workflow_path / job_script_filename))
         to_execute = f'{sub_command}{job_script_filename}'
 
-    if scheduler == 'SGE' or scheduler == 'slurm':
+    if command["scheduler"] == 'SGE' or command["scheduler"] == 'slurm':
 
         job_script_filename = f'job_{command_idx}.job'
         write_file(job_script, workflow_path / job_script_filename)
@@ -32,14 +34,14 @@ def write_execution_files(command, command_idx, scheduler, host_os, workflow_pat
 
         to_execute = f'./{command_script_filename}'
 
-    command_steps = gen_task_string(command[1:])
+    command_steps = gen_task_string(command["commands"])
 
     write_file(command_steps, workflow_path / command_script_filename)
     file_list.append(str(workflow_path / command_script_filename))
 
-    if host_os == 'posix':
+    if command["host_os"] == 'posix':
         subprocess.run(f'chmod u+rwx {workflow_path / command_script_filename}', shell=True)
-    elif host_os == 'windows':
+    elif command["host_os"] == 'windows':
         pass
     
     return [to_execute, file_list]
