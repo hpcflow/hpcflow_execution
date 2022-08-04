@@ -1,101 +1,111 @@
 import collections
 import subprocess
 import secrets
+import json
 from pathlib import Path
 
-from hpcflow_execution import scriptgen
+from hpcflow_execution import file_handler
 from hpcflow_execution import RemoteClient
 
-def run_elements(workflow_dict):
+class Execution:
 
-    # Create local folder
+    def __init__(
+        self
+    ):
+        self.remote_clients = collections.defaultdict(None)
+        self.remote_prep_done = set()
 
-    workflow_id = f'{workflow_dict["name"]}_{secrets.token_hex(10)}'
-    base_folder = Path.cwd()
-    workflow_path = create_workflow_path(workflow_id, base_folder)
 
-    # Write script files to local folder and return list containing filenames 
-    # and command to initiate each task.
+    def prep_workflow(self, workflow_json):
+    
+        workflow_dict = json.loads(workflow_json)
 
-    print(f'Writing scripts and job submission files.')
-    to_run = [
-        scriptgen.write_execution_files(task, task_idx, workflow_path) 
-            for task_idx, task in enumerate(workflow_dict["tasks"])
-            ]
+        workflow_id = f'{workflow_dict["name"]}_{secrets.token_hex(10)}'
 
-    # Create workflow folder on each remote resource and copy relevant files 
-    # for each task.
+        workflow_persistant = file_handler.create_persistant_workflow(
+            workflow_id, 
+           workflow_dict
+            )
 
-    remote_prep_done = set()
-    remote_folders = collections.defaultdict(list)
-    remote_clients = collections.defaultdict(None)
-    scp_out = []
+        return workflow_persistant
 
-    for num, task in enumerate(workflow_dict["tasks"]):
 
-        if task['location'] == 'remote':
+    def prep_tasks(self, workflow_persistant):
+
+        # Write script files to local folder and return list containing filenames 
+        # and command to initiate each task.
+
+        print(f'Writing scripts and job submission files.')
+
+        for task_idx, task in enumerate(workflow_persistant.attrs["tasks"]):
+
+            workflow_persistant = file_handler.write_execution_files(
+                task, task_idx, workflow_persistant)
+
+
+            if task['location'] == 'remote' or task['location'] == 'handover':
             
-            if task['hostname'] not in remote_prep_done:
+                if task['hostname'] not in self.remote_prep_done:
 
-                remote_clients[task['hostname']] = RemoteClient.RemoteClient(
-                    task['hostname'], task['username'], task['basefolder']
-                    )
-                remote_folders[task['hostname']] = create_remote_workflow_path(
-                    workflow_id, remote_clients[task['hostname']]
-                    )
-                remote_prep_done.add(task['hostname'])
+                    self.remote_clients[task['hostname']] = RemoteClient.RemoteClient(
+                            task['hostname'], task['username'], task['basefolder']
+                            )
 
-            remote_clients[task['hostname']].bulk_upload(
-                remote_folders[task['hostname']], to_run[num][1:][0]
-                ) 
+                    self.remote_prep_done.add(task['hostname'])
 
-    # Now execute each task
-    # NB For remote, queued tasks they are all getting submitted to the 
-    # queueing software one after the other. This will need to be dealt with 
-    # to avoid dependency problems.
+            workflow_persistant.attrs["tasks"][task_idx]["status"] = 1
 
-    for num, task in enumerate(workflow_dict["tasks"]):
+        return workflow_persistant
+                
+        # Now execute each task
+        # NB For remote, queued tasks they are all getting submitted to the 
+        # queueing software one after the other. This will need to be dealt with 
+        # to avoid dependency problems.
 
-        if task['location'] == 'local':
+    def run_tasks(self, workflow_persistant, location):
+
+        for num, task in enumerate(workflow_persistant.attrs["tasks"]):
+
+            if task["location"] == "local" and location == "local":
             
-            command_info = subprocess.run(
-                to_run[num][0], shell=True, cwd=workflow_path
+                command_info = subprocess.run(
+                    task["execute"], shell=True, cwd=workflow_path
+                    )
+                command_info.check_returncode()
+
+            elif task['location'] == 'remote' and "location" "local":
+
+                self.remote_clients[task['hostname']].execute_commands(
+                    self.remote_clients[task['hostname']].remote_path, 
+                    [to_run[num][0]]
                 )
-            command_info.check_returncode()
 
-        elif task['location'] == 'remote':
+        return workflow_persistant
 
-            remote_clients[task['hostname']].execute_commands(
-                remote_clients[task['hostname']].remote_path, [to_run[num][0]]
-                )
+    def create_workflow_path(self, workflow_id, base_folder):
 
-    return to_run, scp_out
+        workflow_path = base_folder / workflow_id
 
+        print(f'Creating local workflow folder at {workflow_path}...')
 
-def create_workflow_path(workflow_id, base_folder):
+        workflow_path.mkdir()
 
-    workflow_path = base_folder / workflow_id
+        print(f'Complete\n')
 
-    print(f'Creating local workflow folder at {workflow_path}...')
-
-    workflow_path.mkdir()
-
-    print(f'Complete\n')
-
-    return workflow_path
+        return workflow_path
 
 
-def create_remote_workflow_path(workflow_id, RemoteClient):
+    def create_remote_workflow_path(self, workflow_id, RemoteClient):
 
-    remote_workflow_path = Path(RemoteClient.remote_path) / Path(workflow_id)
+        remote_workflow_path = Path(RemoteClient.remote_path) / Path(workflow_id)
 
-    print(f'Creating remote workflow folder at \
-        {RemoteClient.host}:{remote_workflow_path}...')
+        print(f'Creating remote workflow folder at \
+            {RemoteClient.host}:{remote_workflow_path}...')
 
-    RemoteClient.execute_commands(
-        Path(RemoteClient.remote_path), [f'mkdir {remote_workflow_path}']
-        )
+        RemoteClient.execute_commands(
+            Path(RemoteClient.remote_path), [f'mkdir {remote_workflow_path}']
+            )
 
-    print(f'Complete\n')
+        print(f'Complete\n')
 
-    return remote_workflow_path
+        return remote_workflow_path

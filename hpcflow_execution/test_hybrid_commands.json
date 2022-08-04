@@ -14,7 +14,8 @@
             "scheduler": "direct",
             "basefolder": "/mnt/iusers01/support/mbcxgcf2",
             "hostname": "csf3.itservices.manchester.ac.uk",
-            "username": "mbcxgcf2"
+            "username": "mbcxgcf2",
+            "status": 0
         },
         {
             "name": "queued_task",
@@ -29,7 +30,9 @@
             "scheduler": "SGE",
             "basefolder": "/mnt/iusers01/support/mbcxgcf2",
             "hostname": "csf3.itservices.manchester.ac.uk",
-            "username": "mbcxgcf2"
+            "username": "mbcxgcf2",
+            "status": 0
+
         }
     
     ]
