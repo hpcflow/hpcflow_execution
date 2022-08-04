@@ -42,7 +42,6 @@ class Execution:
             workflow_persistant = file_handler.write_execution_files(
                 task, task_idx, workflow_persistant)
 
-
             if task['location'] == 'remote' or task['location'] == 'handover':
             
                 if task['hostname'] not in self.remote_prep_done:
@@ -69,7 +68,7 @@ class Execution:
             if task["location"] == "local" and location == "local":
             
                 command_info = subprocess.run(
-                    task["execute"], shell=True, cwd=workflow_path
+                    task["execute"], shell=True, cwd=task["exec_dir"]
                     )
                 command_info.check_returncode()
 
@@ -81,31 +80,3 @@ class Execution:
                 )
 
         return workflow_persistant
-
-    def create_workflow_path(self, workflow_id, base_folder):
-
-        workflow_path = base_folder / workflow_id
-
-        print(f'Creating local workflow folder at {workflow_path}...')
-
-        workflow_path.mkdir()
-
-        print(f'Complete\n')
-
-        return workflow_path
-
-
-    def create_remote_workflow_path(self, workflow_id, RemoteClient):
-
-        remote_workflow_path = Path(RemoteClient.remote_path) / Path(workflow_id)
-
-        print(f'Creating remote workflow folder at \
-            {RemoteClient.host}:{remote_workflow_path}...')
-
-        RemoteClient.execute_commands(
-            Path(RemoteClient.remote_path), [f'mkdir {remote_workflow_path}']
-            )
-
-        print(f'Complete\n')
-
-        return remote_workflow_path

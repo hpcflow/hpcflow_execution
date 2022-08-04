@@ -19,7 +19,7 @@ class FrontEnd:
 
         workflow_persistant = executor.prep_tasks(workflow_persistant)
 
-        workflow_persistant = executor.run_tasks(workflow_persistant)
+        workflow_persistant = executor.run_tasks(workflow_persistant, self.location)
 
     def load_workflow_from_json(self, filename):
 

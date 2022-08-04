@@ -14,6 +14,7 @@ def create_persistant_workflow(workflow_id, workflow_dict):
 
     return workflow_persistant
 
+
 def write_execution_files(command, command_idx, workflow_persistant):
 
     file_list = []
@@ -24,7 +25,6 @@ def write_execution_files(command, command_idx, workflow_persistant):
 
     workflow_persistant.workflow.create_group(f"task_{command_idx}")
     task_path = Path(workflow_persistant.workflow.store.dir_path()) / "workflow" / f"task_{command_idx}"
-    print(task_path)
 
     if command["scheduler"] == 'SGE':
 
@@ -59,9 +59,11 @@ def write_execution_files(command, command_idx, workflow_persistant):
         pass
     
     workflow_persistant.attrs["tasks"][command_idx]["execute"] = to_execute
+    workflow_persistant.attrs["tasks"][command_idx]["exec_dir"] = str(task_path)
     workflow_persistant.attrs["tasks"][command_idx]["file_list"] = file_list
 
     return workflow_persistant
+
 
 def gen_sge_job_script(command):
 
@@ -72,6 +74,7 @@ def gen_sge_job_script(command):
     script += f'./{command}\n'
 
     return script
+    
 
 def gen_slurm_job_script(command):
 
@@ -91,6 +94,7 @@ def gen_task_string(task_list):
     task = ''.join(task_list_f)
 
     return task
+
 
 def write_file(contents, filename):
 
