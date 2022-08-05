@@ -39,20 +39,22 @@ class Execution:
 
         for task_idx, task in enumerate(workflow_persistant.attrs["tasks"]):
 
-            workflow_persistant = file_handler.write_execution_files(
-                task, task_idx, workflow_persistant)
+            if workflow_persistant.attrs["tasks"][task_idx]["status"] == 0:
 
-            if task['location'] == 'remote' or task['location'] == 'handover':
+                workflow_persistant = file_handler.write_execution_files(
+                    task, task_idx, workflow_persistant)
+
+                if task['location'] == 'remote':
             
-                if task['hostname'] not in self.remote_prep_done:
+                    if task['hostname'] not in self.remote_prep_done:
 
-                    self.remote_clients[task['hostname']] = RemoteClient.RemoteClient(
-                            task['hostname'], task['username'], task['basefolder']
-                            )
+                        self.remote_clients[task['hostname']] = RemoteClient.RemoteClient(
+                                task['hostname'], task['username'], task['basefolder']
+                                )
 
-                    self.remote_prep_done.add(task['hostname'])
+                        self.remote_prep_done.add(task['hostname'])
 
-            workflow_persistant.attrs["tasks"][task_idx]["status"] = 1
+                workflow_persistant.attrs["tasks"][task_idx]["status"] = 1
 
         return workflow_persistant
                 
@@ -63,7 +65,7 @@ class Execution:
 
     def run_tasks(self, workflow_persistant, location):
 
-        for num, task in enumerate(workflow_persistant.attrs["tasks"]):
+        for task_idx, task in enumerate(workflow_persistant.attrs["tasks"]):
 
             if task["location"] == "local" and location == "local":
             
@@ -76,7 +78,10 @@ class Execution:
 
                 self.remote_clients[task['hostname']].execute_commands(
                     self.remote_clients[task['hostname']].remote_path, 
-                    [to_run[num][0]]
+                    [to_run[task_idx][0]]
                 )
+
+            workflow_persistant.attrs["tasks"][task_idx]["status"] = 2
+
 
         return workflow_persistant

@@ -10,6 +10,11 @@ if __name__ == '__main__':
 
     fe = FrontEnd.FrontEnd(exec_location)
 
-    workflow_json = fe.load_workflow_from_json(workflow_name)
+    if ".json" in workflow_name:
+        workflow = fe.load_from_json(workflow_name)
+    elif ".zarr" in workflow_name:
+        workflow = fe.load_from_persistant_workflow(workflow_name)
+    else:
+        raise Exception('Workflow file type not recognised - must be json or zarr')
 
-    FrontEnd.run_workflow(workflow_json)
+    FrontEnd.run_workflow(workflow)

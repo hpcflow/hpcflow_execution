@@ -87,6 +87,7 @@ def gen_slurm_job_script(command):
 
     return script
 
+
 def gen_task_string(task_list):
 
     task_list_f = [f'{sub_task}\n' for sub_task in task_list]
