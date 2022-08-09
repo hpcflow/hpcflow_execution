@@ -1,4 +1,5 @@
 import subprocess
+import json
 from pathlib import Path
 
 import zarr
@@ -14,6 +15,12 @@ def create_persistant_workflow(workflow_id, workflow_dict):
 
     return workflow_persistant
 
+def force_zattrs_update(workflow_filepath, zattrs_dict):
+
+    zattrs_filepath = Path(workflow_filepath) / '.zattrs'
+
+    with open(zattrs_filepath, 'w') as file:
+        json.dump(zattrs_dict, file)
 
 def write_execution_files(command, command_idx, workflow_persistant):
 

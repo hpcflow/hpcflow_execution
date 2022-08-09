@@ -32,9 +32,6 @@ class Execution:
 
     def prep_tasks(self, workflow_persistant):
 
-        # Write script files to local folder and return list containing filenames 
-        # and command to initiate each task.
-
         print(f'Writing scripts and job submission files.')
 
         for task_idx, task in enumerate(workflow_persistant.attrs["tasks"]):
@@ -57,31 +54,84 @@ class Execution:
                 workflow_persistant.attrs["tasks"][task_idx]["status"] = 1
 
         return workflow_persistant
-                
-        # Now execute each task
-        # NB For remote, queued tasks they are all getting submitted to the 
-        # queueing software one after the other. This will need to be dealt with 
-        # to avoid dependency problems.
+            
 
     def run_tasks(self, workflow_persistant, location):
 
         for task_idx, task in enumerate(workflow_persistant.attrs["tasks"]):
 
-            if task["location"] == "local" and location == "local":
+            current_status = workflow_persistant.attrs["tasks"][task_idx]["status"]
+
+            if task["location"] == "local" and location == "local" and current_status == 1:
             
                 command_info = subprocess.run(
                     task["execute"], shell=True, cwd=task["exec_dir"]
                     )
                 command_info.check_returncode()
 
-            elif task['location'] == 'remote' and "location" "local":
+                status_update = 2
 
-                self.remote_clients[task['hostname']].execute_commands(
-                    self.remote_clients[task['hostname']].remote_path, 
-                    [to_run[task_idx][0]]
-                )
+            elif task["location"] == "remote" and location == "remote" and current_status == 1:
 
-            workflow_persistant.attrs["tasks"][task_idx]["status"] = 2
+                command_info = subprocess.run(
+                    task["execute"], shell=True, cwd=task["exec_dir"]
+                    )
+
+                command_info.check_returncode()
+
+                status_update = 2
+
+            elif task['location'] == "remote" and location == "local" and current_status == 1:
+
+              self.handover_local_to_remote(task_idx, workflow_persistant)
+              status_update = 1
+
+            
+            elif task['location'] == "local" and location == "remote" and current_status == 1:
+
+              self.handover_remote_to_local()
+              status_update = 1
+              
+            else:
+            
+                raise Exception('Lost while running tasks!')
+            
+            workflow_persistant.attrs["tasks"][task_idx]["status"] = status_update
 
 
         return workflow_persistant
+
+
+    def handover_local_to_remote(self, task_idx, workflow_persistant):
+
+        print(f'Handing over to remote...')
+        print(self.remote_clients)
+
+        workflow_abs_path = workflow_persistant.store.path
+        workflow_name = workflow_abs_path.split("/")[-1]
+        destination = workflow_persistant.attrs["tasks"][task_idx]["basefolder"]
+        codedir =  workflow_persistant.attrs["tasks"][task_idx]["codefolder"]
+        workflow_remote = Path(destination) / Path(workflow_name)
+        location = "remote"
+        task = workflow_persistant.attrs["tasks"][task_idx]
+
+        # Force update of zattrs
+        file_handler.force_zattrs_update(
+            workflow_abs_path, 
+            workflow_persistant.attrs.asdict()
+        )
+
+        # Copy workflow to remote
+        self.remote_clients[task["hostname"]].bulk_upload(destination, [workflow_abs_path])
+
+        # Launch remote instance pointing at workflow
+
+        handover_command = f'python RunWorkflow {workflow_remote} {location}'
+        self.remote_clients[task["hostname"]].execute_commands(codedir, handover_command)
+
+        exit()
+
+
+    def handover_remote_to_local(self):
+
+        pass

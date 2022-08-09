@@ -17,4 +17,4 @@ if __name__ == '__main__':
     else:
         raise Exception('Workflow file type not recognised - must be json or zarr')
 
-    FrontEnd.run_workflow(workflow)
+    fe.run_workflow(workflow)
