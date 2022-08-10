@@ -154,6 +154,7 @@ class RemoteClient:
                         f"INPUT: {cmd}\n \
                         OUTPUT: {line}"
                     )
+
             except SSHException as e:
                 self.logger.error(f"SSHException while executing command remotely: {e}")
                 raise
