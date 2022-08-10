@@ -105,7 +105,6 @@ class Execution:
     def handover_local_to_remote(self, task_idx, workflow_persistant):
 
         print(f'Handing over to remote...')
-        print(self.remote_clients)
 
         workflow_abs_path = workflow_persistant.store.path
         workflow_name = workflow_abs_path.split("/")[-1]
@@ -128,10 +127,12 @@ class Execution:
         load_conda = 'module load apps/anaconda3/5.2.0'
         load_proxy = 'module load tools/env/proxy'
         handover_command = f'cd {codedir} && conda run -n test_env python RunWorkflow.py {workflow_remote} {location}'
-        print(load_conda)
-        print(load_proxy)
-        print(codedir)
-        print(handover_command)
+
+        # NOTE: must execute all commands in one go - load conda and proxy, 
+        # cd to code directory and execute python in conda environment.
+        # This stuff doesn't get remembered between usages of the open 
+        # SSH pipe.
+
         self.remote_clients[task["hostname"]].execute_commands(codedir, [f'{load_conda} && {load_proxy} && {handover_command}'])
 
         exit()

@@ -17,6 +17,10 @@ def create_persistant_workflow(workflow_id, workflow_dict):
 
 def force_zattrs_update(workflow_filepath, zattrs_dict):
 
+    # NOTE: this method was added as zarr does not automatically update
+    # zattrs file if changes are made to objects with lower levels (eg 
+    # dicts in attributes, lists of lists in attributes.)
+
     zattrs_filepath = Path(workflow_filepath) / '.zattrs'
 
     with open(zattrs_filepath, 'w') as file:
