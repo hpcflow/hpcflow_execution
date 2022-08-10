@@ -30,8 +30,12 @@ def write_execution_files(command, command_idx, workflow_persistant):
 
     scheduler = command["scheduler"]
 
+    workflow_name = workflow_abs_path.split("/")[-1]
+    worfklow_folder_path = command["basefolder"]
+    exec_path = Path(worfklow_folder_path) / workflow_name / "workflow" / f"task_{command_idx}"
+
     workflow_persistant.workflow.create_group(f"task_{command_idx}")
-    task_path = Path(workflow_persistant.workflow.store.dir_path()) / "workflow" / f"task_{command_idx}"
+    task_write_path = Path(workflow_persistant.workflow.store.dir_path()) / "workflow" / f"task_{command_idx}"
 
     if command["scheduler"] == 'SGE':
 
@@ -46,9 +50,9 @@ def write_execution_files(command, command_idx, workflow_persistant):
     if command["scheduler"] == 'SGE' or command["scheduler"] == 'slurm':
 
         job_script_filename = f'job_{command_idx}.job'
-        write_file(job_script, task_path / job_script_filename)
+        write_file(job_script, task_write_path / job_script_filename)
 
-        file_list.append(str(task_path / job_script_filename))
+        file_list.append(str(task_write_path / job_script_filename))
         to_execute = f'{sub_command}{job_script_filename}'
 
     elif scheduler == 'direct':
@@ -57,16 +61,16 @@ def write_execution_files(command, command_idx, workflow_persistant):
 
     command_steps = gen_task_string(command["commands"])
 
-    write_file(command_steps, task_path / command_script_filename)
-    file_list.append(str(task_path / command_script_filename))
+    write_file(command_steps, task_write_path / command_script_filename)
+    file_list.append(str(task_write_path / command_script_filename))
 
     if command["host_os"] == 'posix':
-        subprocess.run(f'chmod u+rwx {task_path / command_script_filename}', shell=True)
+        subprocess.run(f'chmod u+rwx {task_write_path / command_script_filename}', shell=True)
     elif command["host_os"] == 'windows':
         pass
     
     workflow_persistant.attrs["tasks"][command_idx]["execute"] = to_execute
-    workflow_persistant.attrs["tasks"][command_idx]["exec_dir"] = str(task_path)
+    workflow_persistant.attrs["tasks"][command_idx]["exec_dir"] = str(exec_path)
     workflow_persistant.attrs["tasks"][command_idx]["file_list"] = file_list
 
     return workflow_persistant
