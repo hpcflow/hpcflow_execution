@@ -20,7 +20,7 @@ def force_zattrs_update(workflow_filepath, zattrs_dict):
     zattrs_filepath = Path(workflow_filepath) / '.zattrs'
 
     with open(zattrs_filepath, 'w') as file:
-        json.dump(zattrs_dict, file)
+        json.dump(zattrs_dict, file, indent=4)
 
 def write_execution_files(command, command_idx, workflow_persistant):
 
@@ -30,6 +30,7 @@ def write_execution_files(command, command_idx, workflow_persistant):
 
     scheduler = command["scheduler"]
 
+    workflow_abs_path = workflow_persistant.store.path
     workflow_name = workflow_abs_path.split("/")[-1]
     worfklow_folder_path = command["basefolder"]
     exec_path = Path(worfklow_folder_path) / workflow_name / "workflow" / f"task_{command_idx}"

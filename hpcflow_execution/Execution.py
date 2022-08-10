@@ -125,9 +125,14 @@ class Execution:
         self.remote_clients[task["hostname"]].bulk_upload(destination, [workflow_abs_path])
 
         # Launch remote instance pointing at workflow
-
-        handover_command = f'python RunWorkflow {workflow_remote} {location}'
-        self.remote_clients[task["hostname"]].execute_commands(codedir, handover_command)
+        load_conda = 'module load apps/anaconda3/5.2.0'
+        load_proxy = 'module load tools/env/proxy'
+        handover_command = f'cd {codedir} && conda run -n test_env python RunWorkflow.py {workflow_remote} {location}'
+        print(load_conda)
+        print(load_proxy)
+        print(codedir)
+        print(handover_command)
+        self.remote_clients[task["hostname"]].execute_commands(codedir, [f'{load_conda} && {load_proxy} && {handover_command}'])
 
         exit()
 
