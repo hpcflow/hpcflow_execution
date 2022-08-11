@@ -1,0 +1,26 @@
+{
+	"E-LOSXAL2Q6L4": {
+		"scratch": "/Users/user/Documents/projects/data",
+		"code": "/Users/user/Documents/projects/hpcFlow/code/hpcflow_execution",
+		"connections": {
+			"CSF3": "SSH",
+			"CSF4": "SSH"
+		}
+	},
+	"CSF3": {
+		"scratch":"/mnt/iusers01/support/mbcxgcf2/scratch/hpcflow_execution",
+		"code":"/mnt/iusers01/support/mbcxgcf2/hpcflow_execution",
+		"connections":{
+			"E-LOSXAL2Q6L4":"SSH",
+			"CSF3":"OneDrive"
+		}
+	},
+	"CSF4": {
+		"scratch":"/mnt/iusers01/support/mbcxgcf2/scratch/hpcflow_execution",
+		"code":"/mnt/iusers01/support/mbcxgcf2/hpcflow_execution",
+		"connections":{
+			"E-LOSXAL2Q6L4":"SSH",
+			"CSF3":"OneDrive"
+		}
+	}
+}
