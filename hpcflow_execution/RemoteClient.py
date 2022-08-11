@@ -6,7 +6,6 @@ from scp import SCPClient, SCPException
 from pathlib import Path
 
 import logging
-import traceback
 import getpass
 
 

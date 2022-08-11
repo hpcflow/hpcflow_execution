@@ -27,7 +27,7 @@ class Execution:
 
     def prep_tasks(self, workflow_persistant):
 
-        print(f"Writing scripts and job submission files.")
+        print("Writing scripts and job submission files.")
 
         for task_idx, task in enumerate(workflow_persistant.attrs["tasks"]):
 
@@ -114,7 +114,7 @@ class Execution:
 
     def handover_local_to_remote(self, task_idx, workflow_persistant):
 
-        print(f"Handing over to remote...")
+        print("Handing over to remote...")
 
         workflow_abs_path = workflow_persistant.store.path
         workflow_name = workflow_abs_path.split("/")[-1]
