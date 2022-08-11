@@ -12,9 +12,9 @@ class FrontEnd:
     def __repr__(self):
         return f"FrontEnd({self.location})"
 
-    def run_workflow(self, workflow):
+    def run_workflow(self, workflow, machines):
 
-        executor = Execution.Execution()
+        executor = Execution.Execution(machines, self.location)
 
         if isinstance(workflow, dict):
             workflow_persistant = executor.prep_workflow(workflow)
@@ -24,6 +24,8 @@ class FrontEnd:
             raise Exception("Workflow type not recognised.")
 
         workflow_persistant = executor.prep_tasks(workflow_persistant)
+
+        executor.prep_connections(workflow_persistant, machines, self.location)
 
         workflow_persistant = executor.run_tasks(workflow_persistant, self.location)
 

@@ -5,9 +5,9 @@ from pathlib import Path
 import zarr
 
 
-def create_persistant_workflow(workflow_id, workflow_dict):
+def create_persistant_workflow(workflow_id, workflow_dict, scratch_path):
 
-    workflow_persistant = zarr.group(store=f"{workflow_id}.zarr")
+    workflow_persistant = zarr.group(store=f"{scratch_path}/{workflow_id}.zarr")
 
     workflow_persistant.create_group("workflow")
 
@@ -29,17 +29,18 @@ def force_zattrs_update(workflow_filepath, zattrs_dict):
         json.dump(zattrs_dict, file, indent=4)
 
 
-def write_execution_files(command, command_idx, workflow_persistant):
+def write_execution_files(command, command_idx, workflow_persistant, machines):
 
     file_list = []
 
     command_script_filename = f'{command["name"]}_{command_idx}.sh'
 
     scheduler = command["scheduler"]
+    task_loc = command["location"]
 
     workflow_abs_path = workflow_persistant.store.path
     workflow_name = workflow_abs_path.split("/")[-1]
-    worfklow_folder_path = command["basefolder"]
+    worfklow_folder_path = machines[task_loc]["scratch_dir"]
     exec_path = (
         Path(worfklow_folder_path) / workflow_name / "workflow" / f"task_{command_idx}"
     )
@@ -78,11 +79,11 @@ def write_execution_files(command, command_idx, workflow_persistant):
     write_file(command_steps, task_write_path / command_script_filename)
     file_list.append(str(task_write_path / command_script_filename))
 
-    if command["host_os"] == "posix":
+    if machines[task_loc]["os"] == "posix":
         subprocess.run(
             f"chmod u+rwx {task_write_path / command_script_filename}", shell=True
         )
-    elif command["host_os"] == "windows":
+    elif machines[task_loc]["os"] == "windows":
         pass
 
     workflow_persistant.attrs["tasks"][command_idx]["execute"] = to_execute

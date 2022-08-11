@@ -1,26 +1,49 @@
 {
 	"E-LOSXAL2Q6L4": {
-		"scratch": "/Users/user/Documents/projects/data",
-		"code": "/Users/user/Documents/projects/hpcFlow/code/hpcflow_execution",
+		"os": "posix",
+		"scratch_dir": "/Users/user/Documents/projects/data",
+		"code_dir": "/Users/user/Documents/projects/hpcFlow/code/hpcflow_execution",
 		"connections": {
-			"CSF3": "SSH",
-			"CSF4": "SSH"
+			"CSF3": {
+				"type": "SSH", 
+				"hostname": "csf3.itservices.manchester.ac.uk",
+				"username": "mbcxgcf2"
+			},
+			"CSF4": {
+				"type": "SSH",
+				"hostname": "csf4.itservices.manchester.ac.uk",
+				"username": "mbcxgcf2"
+			}
 		}
 	},
 	"CSF3": {
-		"scratch":"/mnt/iusers01/support/mbcxgcf2/scratch/hpcflow_execution",
-		"code":"/mnt/iusers01/support/mbcxgcf2/hpcflow_execution",
-		"connections":{
-			"E-LOSXAL2Q6L4":"SSH",
-			"CSF3":"OneDrive"
+		"os": "posix",
+		"scratch_dir":"/mnt/iusers01/support/mbcxgcf2/scratch/hpcflow_execution",
+		"code_dir":"/mnt/iusers01/support/mbcxgcf2/hpcflow_execution",
+		"connections": {
+			"E-LOSXAL2Q6L4":{
+				"type":"OneDrive"
+			},
+			"CSF4": {
+				"type": "SSH",
+				"hostname": "csf4.itservices.manchester.ac.uk",
+				"username": "mbcxgcf2"
+			}
 		}
 	},
 	"CSF4": {
+		"os": "posix",
 		"scratch":"/mnt/iusers01/support/mbcxgcf2/scratch/hpcflow_execution",
 		"code":"/mnt/iusers01/support/mbcxgcf2/hpcflow_execution",
 		"connections":{
-			"E-LOSXAL2Q6L4":"SSH",
-			"CSF3":"OneDrive"
+			"E-LOSXAL2Q6L4":{
+				"type":"OneDrive"
+			},
+			"CSF4": {
+				"type": "SSH",
+				"hostname": "csf4.itservices.manchester.ac.uk",
+				"username": "mbcxgcf2"
+			}
 		}
 	}
 }

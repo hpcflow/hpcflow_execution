@@ -21,4 +21,4 @@ if __name__ == "__main__":
 
     machines_dict = fe.load_from_json_to_dict(machines_config_file)
 
-    fe.run_workflow(workflow)
+    fe.run_workflow(workflow, machines_dict)
