@@ -1,7 +1,6 @@
 import collections
 import subprocess
 import secrets
-import json
 from pathlib import Path
 
 from hpcflow_execution import file_handler
@@ -13,9 +12,7 @@ class Execution:
         self.remote_clients = collections.defaultdict(None)
         self.remote_prep_done = set()
 
-    def prep_workflow(self, workflow_json):
-
-        workflow_dict = json.loads(workflow_json)
+    def prep_workflow(self, workflow_dict):
 
         workflow_id = f'{workflow_dict["name"]}_{secrets.token_hex(10)}'
 
