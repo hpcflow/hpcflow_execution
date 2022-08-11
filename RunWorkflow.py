@@ -2,7 +2,7 @@ import sys
 
 from hpcflow_execution import FrontEnd
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     workflow_name = sys.argv[1]
 
@@ -15,6 +15,6 @@ if __name__ == '__main__':
     elif ".zarr" in workflow_name:
         workflow = fe.load_from_persistant_workflow(workflow_name)
     else:
-        raise Exception('Workflow file type not recognised - must be json or zarr')
+        raise Exception("Workflow file type not recognised - must be json or zarr")
 
     fe.run_workflow(workflow)

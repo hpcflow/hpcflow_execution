@@ -2,16 +2,13 @@ import zarr
 
 from hpcflow_execution import Execution
 
-class FrontEnd:
 
-    def __init__(
-        self,
-        location: str
-    ):
+class FrontEnd:
+    def __init__(self, location: str):
         self.location = location
 
     def __repr__(self):
-        return(f"FrontEnd({self.location})")
+        return f"FrontEnd({self.location})"
 
     def run_workflow(self, workflow):
 
@@ -22,7 +19,7 @@ class FrontEnd:
         elif isinstance(workflow, zarr.hierarchy.Group):
             workflow_persistant = workflow
         else:
-            raise Exception('Workflow type not recognised.')
+            raise Exception("Workflow type not recognised.")
 
         workflow_persistant = executor.prep_tasks(workflow_persistant)
 
@@ -37,12 +34,7 @@ class FrontEnd:
 
     def load_from_persistant_workflow(self, filename):
 
-        with zarr.open(filename, 'r+') as file:
+        with zarr.open(filename, "r+") as file:
             workflow_persistant = file
 
         return workflow_persistant
-
-
-
-
-
