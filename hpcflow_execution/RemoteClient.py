@@ -6,24 +6,22 @@ from scp import SCPClient, SCPException
 from pathlib import Path
 
 import logging
-import traceback
 import getpass
 
-class AuthenticationTimeoutError(Exception):
 
+class AuthenticationTimeoutError(Exception):
     def __init__(self, retry_count):
         self.retry_count = retry_count
         self.message = f"Authentication timed out, {retry_count} attempts remaining."
         super().__init__(self.message)
 
-class RemoteClient:
 
+class RemoteClient:
     def __init__(
         self,
         host: str,
         user: str,
         remote_path: str,
-
     ):
         self.host = host
         self.user = user
@@ -35,22 +33,21 @@ class RemoteClient:
         self.logger = self.logger_setup()
 
     def __repr__(self):
-        return f'RemoteClient({self.host}, {self.user}, {self.remote_path})'
+        return f"RemoteClient({self.host}, {self.user}, {self.remote_path})"
 
     @property
     def ssh_client(self):
-
         def handler(title, instructions, prompt_list):
             answers = []
 
-            for prompt_,_ in prompt_list:
+            for prompt_, _ in prompt_list:
                 prompt = prompt_.strip().lower()
-                if prompt.startswith('password'):
+                if prompt.startswith("password"):
                     answers.append(getpass.getpass())
-                elif prompt.startswith('duo'):
-                    answers.append('1')
+                elif prompt.startswith("duo"):
+                    answers.append("1")
                 else:
-                    raise ValueError('Unknown prompt: {}'.format(prompt_))
+                    raise ValueError("Unknown prompt: {}".format(prompt_))
             return answers
 
         if self._ssh_client is None:
@@ -69,13 +66,11 @@ class RemoteClient:
                 return self._ssh_client
 
             except AuthenticationException as e:
-                self.logger.error(
-                    f"AuthenticationException occurred: {e}"
-                    )
+                self.logger.error(f"AuthenticationException occurred: {e}")
                 raise
-                #print(type(e))    
-                #if "timeout" in e:
-                #raise AuthenticationTimeoutError(0)
+                # print(type(e))
+                # if "timeout" in e:
+                # raise AuthenticationTimeoutError(0)
 
             except Exception as e:
                 self.logger.error(
@@ -115,17 +110,19 @@ class RemoteClient:
         self._scp_client = None
 
     def logger_setup(self):
-        
+
         logger = logging.getLogger(__name__)
         logger.setLevel(logging.DEBUG)
 
         c_handler = logging.StreamHandler()
-        f_handler = logging.FileHandler('file.log')
-        #c_handler.setLevel(logging.INFO)
-        #f_handler.setLevel(logging.INFO)
+        f_handler = logging.FileHandler("file.log")
+        # c_handler.setLevel(logging.INFO)
+        # f_handler.setLevel(logging.INFO)
 
-        c_format = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
-        f_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        c_format = logging.Formatter("%(name)s - %(levelname)s - %(message)s")
+        f_format = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        )
         c_handler.setFormatter(c_format)
         f_handler.setFormatter(f_format)
 
@@ -145,7 +142,9 @@ class RemoteClient:
         for cmd in commands:
 
             try:
-                stdin, stdout, stderr = self.ssh_client.exec_command(f"cd {exec_folder} && {cmd}")
+                stdin, stdout, stderr = self.ssh_client.exec_command(
+                    f"cd {exec_folder} && {cmd}"
+                )
                 stdout.channel.recv_exit_status()
                 response = stdout.readlines()
 
@@ -161,26 +160,22 @@ class RemoteClient:
 
     def bulk_upload(self, upload_folder, filepaths: List[str]):
 
-        print(f"Beginning upload of {len(filepaths)} files to {self.remote_path} on {self.host}")
+        print(
+            f"Beginning upload of {len(filepaths)} files to {self.remote_path} on {self.host}"
+        )
 
         try:
             self.scp_client.put(
-                filepaths,
-                remote_path = self.remote_path / upload_folder ,
-                recursive = True
+                filepaths, remote_path=self.remote_path / upload_folder, recursive=True
             )
             self.logger.info(
                 f"Finished uploading {len(filepaths)} files to {self.remote_path} on {self.host}"
             )
         except SCPException as e:
-            self.logger.error(
-                f"SCPException during bulk upload: {e}"
-            )
+            self.logger.error(f"SCPException during bulk upload: {e}")
             raise
         except Exception as e:
-            self.logger.error(
-                f"Unexpected exception during bulk upload: {e}"
-            )
+            self.logger.error(f"Unexpected exception during bulk upload: {e}")
             raise
 
     def download_file(self, file: str):

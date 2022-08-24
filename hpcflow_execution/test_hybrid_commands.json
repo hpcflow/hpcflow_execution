@@ -9,13 +9,8 @@
                 "/bin/sleep 10",
                 "/bin/date"
             ],
-            "location": "remote",
-            "host_os": "posix",
+            "location": "CSF3",
             "scheduler": "direct",
-            "basefolder": "/mnt/iusers01/support/mbcxgcf2/scratch/hpcflow_execution",
-            "codefolder": "/mnt/iusers01/support/mbcxgcf2/hpcflow_execution",
-            "hostname": "csf3.itservices.manchester.ac.uk",
-            "username": "mbcxgcf2",
             "status": 0
         },
         {
@@ -26,13 +21,8 @@
                 "/bin/sleep 10",
                 "/bin/date"
             ],
-            "location": "remote",
-            "host_os": "posix",
+            "location": "CSF3",
             "scheduler": "SGE",
-            "basefolder": "/mnt/iusers01/support/mbcxgcf2/scratch/hpcflow_execution",
-            "codefolder": "/mnt/iusers01/support/mbcxgcf2/hpcflow_execution",
-            "hostname": "csf3.itservices.manchester.ac.uk",
-            "username": "mbcxgcf2",
             "status": 0
 
         }

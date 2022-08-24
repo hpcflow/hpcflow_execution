@@ -1,48 +1,46 @@
+import json
+
 import zarr
 
 from hpcflow_execution import Execution
 
-class FrontEnd:
 
-    def __init__(
-        self,
-        location: str
-    ):
+class FrontEnd:
+    def __init__(self, location: str):
         self.location = location
 
     def __repr__(self):
-        return(f"FrontEnd({self.location})")
+        return f"FrontEnd({self.location})"
 
-    def run_workflow(self, workflow):
+    def run_workflow(self, workflow, machines):
 
-        executor = Execution.Execution()
+        executor = Execution.Execution(machines, self.location)
 
-        if isinstance(workflow, str):
+        if isinstance(workflow, dict):
             workflow_persistant = executor.prep_workflow(workflow)
         elif isinstance(workflow, zarr.hierarchy.Group):
             workflow_persistant = workflow
         else:
-            raise Exception('Workflow type not recognised.')
+            raise Exception("Workflow type not recognised.")
 
         workflow_persistant = executor.prep_tasks(workflow_persistant)
 
+        executor.prep_connections(workflow_persistant, machines, self.location)
+
         workflow_persistant = executor.run_tasks(workflow_persistant, self.location)
 
-    def load_from_json(self, filename):
+    def load_from_json_to_dict(self, filename):
 
         with open(filename) as file:
-            workflow_json = file.read()
+            json_string = file.read()
 
-        return workflow_json
+        json_in_dict = json.loads(json_string)
+
+        return json_in_dict
 
     def load_from_persistant_workflow(self, filename):
 
-        with zarr.open(filename, 'r+') as file:
+        with zarr.open(filename, "r+") as file:
             workflow_persistant = file
 
         return workflow_persistant
-
-
-
-
-
