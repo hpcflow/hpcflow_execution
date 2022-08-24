@@ -10,6 +10,7 @@ paramiko = "*"
 scp = "*"
 retry = "*"
 pre-commit = "*"
+dropbox = "*"
 
 [dev-packages]
 
