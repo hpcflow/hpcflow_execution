@@ -3,7 +3,7 @@
 import pytest
 from pathlib import Path
 
-from hpcflow_execution import execution
+from hpcflow_execution import Execution
 
 @pytest.fixture
 def simple_commands():
@@ -23,7 +23,7 @@ def test_run_elements_direct_posix(simple_commands, tmp_path):
 
     # Test for direct execution in posix environment. Three files should be created.
 
-    execution.run_elements(simple_commands, 'direct', 'posix')
+    Execution.run_elements(simple_commands, 'direct', 'posix')
 
     assert Path('file1.txt').is_file()
     assert Path('file2.txt').is_file()
@@ -34,21 +34,21 @@ def test_unrecognised_host_os(simple_commands):
     # Test that exception is raised if unknown host OS is requested.
 
     with pytest.raises(Exception) as e_info:
-        execution.run_elements(simple_commands, 'direct', 'foo')
+        Execution.run_elements(simple_commands, 'direct', 'foo')
 
 def test_unrecognised_scheduler_posix(simple_commands):
 
     # Test that exception is raised if unknown posix scheduler is requested.
 
     with pytest.raises(Exception) as e_info:
-        execution.run_elements(simple_commands, 'foo', 'posix')
+        Execution.run_elements(simple_commands, 'foo', 'posix')
 
 def test_unrecognised_scheduler_windows(simple_commands):
 
     # Test that exception is raised if unknown windows scheduler is requested.
 
     with pytest.raises(Exception) as e_info:
-        execution.run_elements(simple_commands, 'foo', 'windows')
+        Execution.run_elements(simple_commands, 'foo', 'windows')
       
 
 

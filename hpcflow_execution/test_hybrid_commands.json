@@ -1,0 +1,31 @@
+{
+    "name": "remote_flow",
+    "tasks": [
+        {
+            "name": "direct_task",
+            "commands": [        
+                "/bin/date",
+                "/bin/hostname",
+                "/bin/sleep 10",
+                "/bin/date"
+            ],
+            "location": "CSF3",
+            "scheduler": "direct",
+            "status": 0
+        },
+        {
+            "name": "queued_task",
+            "commands": [
+                "/bin/date",
+                "/bin/hostname",
+                "/bin/sleep 10",
+                "/bin/date"
+            ],
+            "location": "CSF3",
+            "scheduler": "SGE",
+            "status": 0
+
+        }
+    
+    ]
+}
