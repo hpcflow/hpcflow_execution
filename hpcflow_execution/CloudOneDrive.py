@@ -4,7 +4,7 @@ import json
 from datetime import datetime
 import requests
 
-from hpcflow_execution import CloudStorage
+from hpcflow_execution.CloudStorage import CloudStorage
 
 GRAPH_API_ENDPOINT = "https://graph.microsoft.com/v1.0"
 

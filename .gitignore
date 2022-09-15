@@ -2,6 +2,14 @@
 
 remote_flow_*
 *.zarr
+test.txt
+
+# Access tokens
+
+ms_graph_api_token.json
+
+# vscode
+*.code-workspace
 
 #macOS
 

@@ -2,7 +2,7 @@ from textwrap import dedent
 from pathlib import Path
 import dropbox as dropbox_api
 
-from hpcflow_execution import CloudStorage
+from hpcflow_execution.CloudStorage import CloudStorage
 
 
 class CloudDropbox(CloudStorage):
@@ -33,13 +33,13 @@ class CloudDropbox(CloudStorage):
 
         return token
 
-    def get_dropbox(token):
+    def get_dropbox(self, token):
 
         dbx = dropbox_api.Dropbox(token)
 
         return dbx
 
-    def upload_file(dbx, local_path, local_file, dropbox_path):
+    def upload_file(self, dbx, local_path, local_file, dropbox_path):
 
         local_file_path = Path(local_path) / local_file
 
