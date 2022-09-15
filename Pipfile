@@ -11,6 +11,8 @@ scp = "*"
 retry = "*"
 pre-commit = "*"
 dropbox = "*"
+msgraph-core = "*"
+azure-identity = "*"
 
 [dev-packages]
 

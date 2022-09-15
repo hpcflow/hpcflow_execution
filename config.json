@@ -1,0 +1,9 @@
+{
+    "azure":{
+        "client_id":"db263feb-e450-42cd-856c-26c071ee6917",
+        "scopes":["Files.ReadWrite"]
+    },
+    "dropbox":{
+        "client_id":"638ebfutlda13wu"
+    }
+}
