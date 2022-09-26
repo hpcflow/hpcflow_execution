@@ -7,6 +7,7 @@ test.txt
 # Access tokens
 
 ms_graph_api_token.json
+dropbox_api_token.json
 
 # vscode
 *.code-workspace

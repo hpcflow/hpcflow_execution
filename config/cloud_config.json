@@ -4,6 +4,10 @@
         "scopes":["Files.ReadWrite"]
     },
     "dropbox":{
-        "client_id":"638ebfutlda13wu"
+        "client_id":"638ebfutlda13wu",
+	"scopes":[
+		"files.content.read",
+		"files.content.write"
+	]
     }
 }

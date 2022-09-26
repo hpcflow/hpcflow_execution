@@ -5,7 +5,7 @@ from hpcflow_execution.CloudOneDrive import CloudOneDrive
 
 if __name__ == "__main__":
 
-    config_filename = "config.json"
+    config_filename = "config/cloud_config.json"
 
     with open(config_filename) as file:
         json_string = file.read()
@@ -15,10 +15,12 @@ if __name__ == "__main__":
     # Test CloudDropbox
 
     dbx_client_id = config["dropbox"]["client_id"]
+    dbx_scopes = config["dropbox"]["scopes"]
 
-    test_dbx = CloudDropbox(dbx_client_id)
-    test_token = test_dbx.generate_access_token()
-    test_dbx_client = test_dbx.get_dropbox(test_token)
+    test_dbx = CloudDropbox(dbx_client_id, dbx_scopes)
+    token_dict = test_dbx.generate_access_token()
+    test_dbx.save_token(token_dict)
+    test_dbx_client = test_dbx.get_dropbox(token_dict)
 
     test_dbx.upload_file(
         test_dbx_client,

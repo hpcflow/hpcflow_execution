@@ -19,7 +19,7 @@ class CloudOneDrive(CloudStorage):
         client_id = self.client_id
         scopes = self.scopes
 
-        token_path = "ms_graph_api_token.json"
+        token_path = "config/ms_graph_api_token.json"
 
         token_cache = msal.SerializableTokenCache()
 

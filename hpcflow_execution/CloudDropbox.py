@@ -1,3 +1,5 @@
+import json
+
 from textwrap import dedent
 from pathlib import Path
 import dropbox as dropbox_api
@@ -6,13 +8,16 @@ from hpcflow_execution.CloudStorage import CloudStorage
 
 
 class CloudDropbox(CloudStorage):
-    def __init__(self, client_id):
+    def __init__(self, client_id, scopes):
         super().__init__(client_id)
+        self.scopes = scopes
 
     def generate_access_token(self):
 
         APP_KEY = self.client_id
-        auth_flow = dropbox_api.DropboxOAuth2FlowNoRedirect(APP_KEY, use_pkce=True)
+        auth_flow = dropbox_api.DropboxOAuth2FlowNoRedirect(
+            APP_KEY, use_pkce=True, scope=self.scopes
+        )
         authorize_url = auth_flow.start()
 
         msg = dedent(
@@ -31,9 +36,22 @@ class CloudDropbox(CloudStorage):
         oauth_result = auth_flow.finish(auth_code)
         token = oauth_result.access_token
 
-        return token
+        token_dict = {"AccessToken": token}
 
-    def get_dropbox(self, token):
+        return token_dict
+
+    def save_token(self, token_dict):
+
+        token_path = "config/dropbox_api_token.json"
+
+        token_string = json.dumps(token_dict)
+
+        with open(token_path, "w") as file_out:
+            file_out.write(token_string)
+
+    def get_dropbox(self, token_dict):
+
+        token = token_dict["AccessToken"]
 
         dbx = dropbox_api.Dropbox(token)
 
