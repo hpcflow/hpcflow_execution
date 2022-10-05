@@ -8,7 +8,7 @@ import sys
 import dropbox as dropbox_api
 
 from hpcflow_execution.CloudStorage import CloudStorage
-from hpcflow_execution.JSONEncoders import DateTimeAwareEncoder
+from hpcflow_execution.JSONEncoders import DateTimeAwareDecoder, DateTimeAwareEncoder
 
 
 class CloudDropbox(CloudStorage):
@@ -48,10 +48,10 @@ class CloudDropbox(CloudStorage):
 
         token_path = "config/dropbox_api_token.json"
 
-        token_string = json.dumps(auth_dict, cls=DateTimeAwareEncoder)
+        # token_string = json.dumps(auth_dict, cls=DateTimeAwareEncoder)
 
         with open(token_path, "w") as file_out:
-            json.dump(token_string, file_out, indent=4)
+            json.dump(auth_dict, file_out, indent=4, cls=DateTimeAwareEncoder)
 
     def load_authorizaton(self):
 
@@ -70,7 +70,7 @@ class CloudDropbox(CloudStorage):
             print(f"{token_path} is a directory!", file=sys.stderr)
             return
 
-        auth_dict = json.loads(auth_string)
+        auth_dict = json.loads(auth_string, cls=DateTimeAwareDecoder)
 
         return auth_dict
 

@@ -19,7 +19,11 @@ CloudDbx = CloudDropbox(
 # Get and save authorization keys
 
 auth_dict = CloudDbx.get_authorization()
+print(auth_dict)
 CloudDbx.save_authorization(auth_dict)
+auth_dict = CloudDbx.load_authorizaton()
+
+print(auth_dict)
 
 # Create client and upload files
 
@@ -34,4 +38,4 @@ CloudDbx.upload_file(
 # Revoke access tokens, delete file
 
 CloudDbx.revoke_auth(dbx_client)
-CloudDbx.delete_authorization_file()
+# CloudDbx.delete_authorization_file()
