@@ -13,6 +13,7 @@ pre-commit = "*"
 dropbox = "*"
 msgraph-core = "*"
 azure-identity = "*"
+pytest = "*"
 
 [dev-packages]
 

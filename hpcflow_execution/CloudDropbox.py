@@ -8,7 +8,7 @@ import sys
 import dropbox as dropbox_api
 
 from hpcflow_execution.CloudStorage import CloudStorage
-from hpcflow_execution.JSONEncoders import DateTimeAwareDecoder, DateTimeAwareEncoder
+from hpcflow_execution.JSONCoders import DateTimeAwareDecoder, DateTimeAwareEncoder
 
 
 class CloudDropbox(CloudStorage):
@@ -55,6 +55,8 @@ class CloudDropbox(CloudStorage):
 
     def load_authorizaton(self):
 
+        # Test for file not exisiting
+
         token_path = "config/dropbox_api_token.json"
 
         try:
@@ -62,19 +64,18 @@ class CloudDropbox(CloudStorage):
                 auth_string = file_in.read()
         except FileNotFoundError:
             print(f"File {token_path} not found!", file=sys.stderr)
-            return
         except PermissionError:
             print(f"Insufficient permission to read {token_path}!", file=sys.stderr)
-            return
         except IsADirectoryError:
             print(f"{token_path} is a directory!", file=sys.stderr)
-            return
 
         auth_dict = json.loads(auth_string, cls=DateTimeAwareDecoder)
 
         return auth_dict
 
     def delete_authorization_file(self):
+
+        # Test for file not existing
 
         token_path = "config/dropbox_api_token.json"
 
@@ -110,9 +111,19 @@ class CloudDropbox(CloudStorage):
 
     def upload_file(self, dbx, local_path, local_file, dropbox_path):
 
-        local_file_path = Path("/" + local_path) / local_file
+        try:
+            assert Path(local_path).is_dir()
+        except AssertionError:
+            raise FileNotFoundError
+
+        local_path_to_file = Path(local_path) / local_file
+
+        try:
+            assert local_path_to_file.is_file()
+        except AssertionError:
+            raise FileNotFoundError
 
         mode = dropbox_api.files.WriteMode("overwrite")
 
-        with local_file_path.open(mode="rb") as file_handle:
+        with local_path_to_file.open(mode="rb") as file_handle:
             dbx.files_upload(file_handle.read(), dropbox_path, mode=mode)
