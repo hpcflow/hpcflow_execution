@@ -7,6 +7,8 @@ from hpcflow_execution.CloudDropbox import CloudDropbox
 
 
 def test_load_authorization_auth_file_does_not_exist():
+    """load_authroization raises FileNotFoundError if token file does not
+    exist"""
 
     dbx_app_key = "123456789"
     dbx_app_scopes = ["scope_1", "scope_2"]
@@ -18,6 +20,8 @@ def test_load_authorization_auth_file_does_not_exist():
 
 
 def test_delete_authorization_file_auth_file_does_not_exist():
+    """delete_authorization raises FileNotFoundError if token file does not
+    exist"""
 
     dbx_app_key = "123456789"
     dbx_app_scopes = ["scope_1", "scope_2"]
@@ -29,6 +33,8 @@ def test_delete_authorization_file_auth_file_does_not_exist():
 
 
 def test_file_upload_local_path_does_not_exist():
+    """file_upload raises FileNotFoundError if specified file path does not
+    exist."""
 
     dbx_app_key = "123456789"
     dbx_app_scopes = ["scope_1", "scope_2"]
@@ -47,6 +53,8 @@ def test_file_upload_local_path_does_not_exist():
 
 
 def test_file_upload_local_file_does_not_exist():
+    """file_upload raises FileNotFoundError if specified local file does not
+    exist."""
 
     dbx_app_key = "123456789"
     dbx_app_scopes = ["scope_1", "scope_2"]
