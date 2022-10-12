@@ -16,6 +16,29 @@ class CloudDropbox(CloudStorage):
         super().__init__(client_id)
         self.scopes = scopes
 
+    def authorize(self):
+        """ "Get and save authorization and refresh tokens for use at a later
+        date."""
+
+        auth_dict = self.get_authorization()
+        self.save_authorization(auth_dict)
+
+    def upload_files(self, local_path, local_files, dropbox_path):
+        """ "Use authentication to create dropbox client and upload files."""
+
+        auth_dict = self.load_authorizaton()
+        dbx_client = self.get_dropbox_with_refresh(auth_dict)
+        for file in local_files:
+            self.upload_files(dbx_client, local_path, file, dropbox_path)
+
+        return dbx_client
+
+    def remove_autorization(self, dbx_client):
+        """ "Revoke authorization and delete file containing tokens."""
+
+        self.revoke_auth(dbx_client)
+        self.delete_authorization_file()
+
     def get_authorization(self):
 
         auth_flow = dropbox_api.DropboxOAuth2FlowNoRedirect(
@@ -62,16 +85,22 @@ class CloudDropbox(CloudStorage):
         try:
             with open(token_path, "r") as file_in:
                 auth_string = file_in.read()
+            auth_dict = json.loads(auth_string, cls=DateTimeAwareDecoder)
+            return auth_dict
         except FileNotFoundError:
-            print(f"File {token_path} not found!", file=sys.stderr)
+            print(
+                f"Dropbox authorisation file {token_path} not found!", file=sys.stderr
+            )
+            raise
         except PermissionError:
-            print(f"Insufficient permission to read {token_path}!", file=sys.stderr)
+            print(
+                f"Insufficient permission to read Dropbox authorisation file {token_path}!",
+                file=sys.stderr,
+            )
+            raise
         except IsADirectoryError:
             print(f"{token_path} is a directory!", file=sys.stderr)
-
-        auth_dict = json.loads(auth_string, cls=DateTimeAwareDecoder)
-
-        return auth_dict
+            raise
 
     def delete_authorization_file(self):
 
@@ -79,7 +108,11 @@ class CloudDropbox(CloudStorage):
 
         token_path = "config/dropbox_api_token.json"
 
-        os.remove(token_path)
+        try:
+            os.remove(token_path)
+        except FileNotFoundError:
+            print(f"Trying to delete non-existant Dropbox auth file {token_path}!")
+            raise
 
     def check_access_token_expiry(self, auth_dict):
 
@@ -111,19 +144,17 @@ class CloudDropbox(CloudStorage):
 
     def upload_file(self, dbx, local_path, local_file, dropbox_path):
 
-        try:
-            assert Path(local_path).is_dir()
-        except AssertionError:
-            raise FileNotFoundError
-
         local_path_to_file = Path(local_path) / local_file
-
-        try:
-            assert local_path_to_file.is_file()
-        except AssertionError:
-            raise FileNotFoundError
 
         mode = dropbox_api.files.WriteMode("overwrite")
 
-        with local_path_to_file.open(mode="rb") as file_handle:
-            dbx.files_upload(file_handle.read(), dropbox_path, mode=mode)
+        try:
+            with local_path_to_file.open(mode="rb") as file_handle:
+                dbx.files_upload(file_handle.read(), dropbox_path, mode=mode)
+        except FileNotFoundError:
+            if ~Path(local_path).is_dir():
+                print("Path does not exist!")
+                raise
+            elif ~local_path_to_file.is_file():
+                print("File does not exist!")
+                raise

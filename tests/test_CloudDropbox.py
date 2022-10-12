@@ -25,7 +25,7 @@ def test_delete_authorization_file_auth_file_does_not_exist():
     CloudDbx = CloudDropbox(dbx_app_key, dbx_app_scopes)
 
     with pytest.raises(FileNotFoundError):
-        CloudDbx.delete_authorizaton_file()
+        CloudDbx.delete_authorization_file()
 
 
 def test_file_upload_local_path_does_not_exist():
