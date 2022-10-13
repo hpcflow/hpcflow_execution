@@ -29,10 +29,7 @@ print(auth_dict)
 
 dbx_client = CloudDbx.get_dropbox_with_refresh(auth_dict)
 CloudDbx.upload_file(
-    dbx_client,
-    "/Users/user/Documents/projects/hpcflow_execution",
-    "test.txt",
-    "/Apps/hpcflow_execution_test",
+    dbx_client, "/Users/user/Documents/projects/hpcflow_execution", "test.txt", "/"
 )
 
 # Revoke access tokens, delete file

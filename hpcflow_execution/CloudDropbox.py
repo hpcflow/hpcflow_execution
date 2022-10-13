@@ -33,7 +33,7 @@ class CloudDropbox(CloudStorage):
 
         return dbx_client
 
-    def remove_autorization(self, dbx_client):
+    def remove_authorization(self, dbx_client):
         """ "Revoke authorization and delete file containing tokens."""
 
         self.revoke_auth(dbx_client)
@@ -145,12 +145,15 @@ class CloudDropbox(CloudStorage):
     def upload_file(self, dbx, local_path, local_file, dropbox_path):
 
         local_path_to_file = Path(local_path) / local_file
+        dropbox_path_to_file = Path(dropbox_path) / local_file
 
         mode = dropbox_api.files.WriteMode("overwrite")
 
         try:
             with local_path_to_file.open(mode="rb") as file_handle:
-                dbx.files_upload(file_handle.read(), dropbox_path, mode=mode)
+                dbx.files_upload(
+                    file_handle.read(), dropbox_path_to_file.as_posix(), mode=mode
+                )
         except FileNotFoundError:
             if ~Path(local_path).is_dir():
                 print("Path does not exist!")
