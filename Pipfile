@@ -10,8 +10,12 @@ paramiko = "*"
 scp = "*"
 retry = "*"
 pre-commit = "*"
+dropbox = "*"
+msgraph-core = "*"
+azure-identity = "*"
+pytest = "*"
 
 [dev-packages]
 
 [requires]
-python_version = "3.9"
+python_version = "3.10"
